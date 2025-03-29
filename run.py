@@ -1,11 +1,11 @@
-import dash
-from dash import html
+from dash import Dash, html
+from app.components.charts import get_consumption_chart
 
-app = dash.Dash(__name__)
+app = Dash(__name__)
 
-app.layout = html.Div([
-    html.H1("Hello, Dash!"),
-    html.P("This is a minimal Dash app.")
+app.layout = html.Div(children=[
+    html.H1("Electricity Consumption Dashboard"),
+    get_consumption_chart()
 ])
 
 if __name__ == "__main__":

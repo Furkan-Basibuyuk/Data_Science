@@ -1,5 +1,4 @@
-dash
-numpy
+flask
 pandas
-plotly[express]
-statsmodels
+plotly
+openpyxl

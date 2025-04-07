@@ -6,7 +6,7 @@ import warnings
 warnings.filterwarnings("ignore")
 
 # --------------------------
-# 📥 2025 Verisini Yükle
+# 📥 2025 Data Load
 # --------------------------
 def load_rte_file(filepath, year):
     df = pd.read_csv(
@@ -38,17 +38,17 @@ def load_rte_file(filepath, year):
 
     return df["Consommation"]
 
-# 🔹 Veriyi yükle
+# 🔹 Load data
 y_2025 = load_rte_file("conso_mix_RTE_2025.xls", 2025)
 y_2025 = y_2025["2025-01-01":"2025-01-02"]
 
 # --------------------------
-# 🎯 Modeli Yükle
+# 🎯 Upload Model
 # --------------------------
 model = joblib.load("pmdarima_model.pkl")
 
 # --------------------------
-# 🔁 Recursive Tahmin
+# 🔁 Recursive Forecast
 # --------------------------
 preds = []
 history = []
@@ -63,32 +63,32 @@ for i, value in enumerate(y_2025):
 
 
 # --------------------------
-# 💾 Excel Çıktısı
+# 💾 Excel Output
 # --------------------------
 output_df = pd.DataFrame({
-    "TarihSaat": list(y_2025.index)[:len(preds)],  # index sayısını tahmine uydur
-    "Gerçek Tüketim": list(y_2025.values)[:len(preds)],
-    "Tahmin (PMDARIMA)": preds
+    "DateTime": list(y_2025.index)[:len(preds)],  # adjust index number to forecast
+    "Real Consumption": list(y_2025.values)[:len(preds)],
+    "Forecast (PMDARIMA)": preds
 })
 
 
-output_df["TarihSaat"] = output_df["TarihSaat"].dt.strftime("%Y-%m-%d %H:%M")
-output_df.to_excel("PMDARIMA_2025_Tahmin_Raporu.xlsx", index=False)
-print("✅ Tahminler Excel'e kaydedildi: PMDARIMA_2025_Tahmin_Raporu.xlsx")
+output_df["DateTime"] = output_df["DateTime"].dt.strftime("%Y-%m-%d %H:%M")
+output_df.to_excel("PMDARIMA_2025_Forecast_Report.xlsx", index=False)
+print("✅ Forecast Exported to Excel: PMDARIMA_2025_Forecast_Report.xlsx")
 
 # --------------------------
-# 📊 Grafiği Çiz
+# 📊 Draw the Graph
 # --------------------------
 plt.figure(figsize=(12, 5))
-plt.plot(y_2025.index, y_2025.values, label="Gerçek", alpha=0.8)
-plt.plot(y_2025.index, preds, label="Tahmin", alpha=0.8)
-plt.title("2025 - Gerçek vs Tahmin (PMDARIMA)")
-plt.xlabel("Zaman")
-plt.ylabel("Tüketim")
+plt.plot(y_2025.index, y_2025.values, label="Real", alpha=0.8)
+plt.plot(y_2025.index, preds, label="Forecast", alpha=0.8)
+plt.title("2025 - Real vs Forecast (PMDARIMA)")
+plt.xlabel("Time")
+plt.ylabel("Consumption")
 plt.legend()
 plt.grid(True)
 plt.tight_layout()
-plt.savefig("pmdarima_tahmin_grafik.png")
+plt.savefig("pmdarima_forecast_graph.png")
 plt.show()
 
 

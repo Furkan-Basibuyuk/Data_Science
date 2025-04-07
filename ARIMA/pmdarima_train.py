@@ -3,7 +3,7 @@ from pmdarima import auto_arima
 import joblib
 
 # --------------------------
-# 📥 Eğitim Verisini Yükle
+# 📥 Load Training Data
 # --------------------------
 def load_rte_file(filepath, year):
     df = pd.read_csv(
@@ -35,21 +35,21 @@ def load_rte_file(filepath, year):
 
     return df["Consommation"]
 
-# 🔹 Verileri yükle
+# 🔹 Load data
 y_2023 = load_rte_file("conso_mix_RTE_2023.xls", 2023)
 y_2024 = load_rte_file("conso_mix_RTE_2024.xls", 2024)
 y_all = pd.concat([y_2023, y_2024]).sort_index()
 y_train = y_all
 
-# Bilgi yaz
-print("📊 Veri boyutu:", len(y_train))
-print("🕒 Başlangıç:", y_train.index.min())
-print("🕒 Bitiş:", y_train.index.max())
+# Information about data
+print("📊 Data size:", len(y_train))
+print("🕒 Start Time:", y_train.index.min())
+print("🕒 End Time:", y_train.index.max())
 
 # --------------------------
-# 🎯 Model Eğitimi
+# 🎯 Model Training
 # --------------------------
-print("⏳ PMDARIMA modeli eğitiliyor...")
+print("⏳ PMDARIMA model is training...")
 model = auto_arima(
     y_train,
     seasonal=False,
@@ -58,10 +58,10 @@ model = auto_arima(
     suppress_warnings=True,
     trace=True
 )
-print("✅ Eğitim tamamlandı.")
+print("✅ Training is completed.")
 
 # --------------------------
-# 💾 Modeli Kaydet
+# 💾 Save the Model
 # --------------------------
 joblib.dump(model, "pmdarima_model.pkl")
-print("✅ Model kaydedildi: pmdarima_model.pkl")
+print("✅ Model is saved: pmdarima_model.pkl")

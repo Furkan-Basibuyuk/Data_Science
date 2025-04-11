@@ -2,6 +2,15 @@
 This script trains the XGBoost with only the real consumption data. No provision data is used. Lags are introduced to 
 dynamically predict the consumption and prevent cyclic repeating patterns. Unless it is used, the prediction takes account of
 days and weeks while disregarding monthly or seasonal fluctuations.
+
+
+What is XGBoost?
+It is EXTREME GRADIENT BOOSTING. 
+It uses tree boosting algorithm. It takes an average prediction and improves upon that with addition of newer trees.
+Hence, you need a mechanism to continuously improve and evaluate the model. We use the error function for that.
+We selected Mean Squared Error (MSE) as we learnt in the course. Through trial, we minimize the MSE to get the best model.
+
+
 """
 
 import pandas as pd
@@ -15,10 +24,9 @@ import numpy as np
 df_2023 = pd.read_excel("final_conso_RTE_2023.xlsx")
 df_2024 = pd.read_excel("final_conso_RTE_2024.xlsx")
 
-# Combine them
+
 df_all = pd.concat([df_2023, df_2024]).sort_values("datetime")
 
-# Save to one file
 df_all.to_excel("final_conso_RTE_2023_2024_combined.xlsx", index=False)
 
 df_train = pd.read_excel("final_conso_RTE_2023_2024_combined.xlsx")
@@ -39,25 +47,22 @@ for lag in lags:
 
 # df_train = df_train.dropna(subset=['real_consumption'] + [f'lag_{l}' for l in lags])
 
-# Fill missing lag values with placeholder
+
 df_train[[f'lag_{l}' for l in lags]] = df_train[[f'lag_{l}' for l in lags]].fillna(-1)
 
-# Optionally still drop rows where target is missing (just in case)
+
 df_train = df_train.dropna(subset=['real_consumption'])
 
 
 
-# Define features and target
+
 features = ['hour_of_day', 'day_of_week', 'month'] + [f'lag_{l}' for l in lags]
 X = df_train[features]
 y = df_train['real_consumption']
 
-# Optional: split for evaluation
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# --------------------------
-# ⚙️ XGBoost Configuration
-# --------------------------
+
 model = xgb.XGBRegressor(
     objective='reg:squarederror',
     n_estimators=200,
@@ -68,23 +73,14 @@ model = xgb.XGBRegressor(
     random_state=42
 )
 
-# --------------------------
-# 🏋️ Train Model
-# --------------------------
 print("Training model...")
 model.fit(X_train, y_train)
 
-# --------------------------
-# 📉 Evaluate
-# --------------------------
 y_pred = model.predict(X_val)
 rmse = np.sqrt(mean_squared_error(y_val, y_pred))
-print(f"✅ Training complete. RMSE on validation set: {rmse:.2f}")
+print(f"Training complete. RMSE on validation set: {rmse:.2f}")
 
-# --------------------------
-# 💾 Save Model
-# --------------------------
 joblib.dump(model, "xgb_model_2023_2024.pkl")
-print("✅ Model saved as xgb_model_2023_2024.pkl")
+print("Model saved as xgb_model_2023_2024.pkl")
 
 

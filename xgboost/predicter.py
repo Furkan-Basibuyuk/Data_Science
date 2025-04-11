@@ -7,27 +7,30 @@ recursively by feeding previous predictions back into lag slots. Optional anneal
 import pandas as pd
 import joblib
 
-# Load trained model
+
 model = joblib.load("xgb_model_2023_2024.pkl")
 
-# Load extended 2025 dataset
-df = pd.read_excel("final_conso_RTE_2025_extended.xlsx")
 
-# Create month column (only for feature input, not saved)
+df = pd.read_excel("final_conso_RTE_2025.xlsx")
+
+
 df['month'] = df['datetime'].dt.month
 
-# Initialize predicted_consumption column
+
 # Copy real_consumption where available
 if 'real_consumption' in df.columns:
-    df['predicted_consumption'] = df['real_consumption']
+    # df['predicted_consumption'] = df['real_consumption']
+    df['predicted_consumption'] = pd.NA
 else:
     df['predicted_consumption'] = pd.NA
 
 # Determine last index where real consumption is known
-cutoff_idx = df['predicted_consumption'].last_valid_index()
+# cutoff_idx = df['predicted_consumption'].last_valid_index()
+cutoff_idx = df['real_consumption'].last_valid_index()
 
-# Recursive forecasting from the next row to the end
-for i in range(cutoff_idx + 1, len(df)):
+
+for i in range( len(df)):
+# cutoff_idx + 1,
     row = df.loc[i]
 
     def get_lag(idx):
@@ -54,12 +57,17 @@ for i in range(cutoff_idx + 1, len(df)):
 
     prediction = model.predict(input_features)[0]
 
-    # Optional: annealing (smooth prediction drift)
-    prediction = 0.9 * prediction + 0.1 * df.loc[i - 96, 'predicted_consumption']
+    
+    # prediction = 0.9 * prediction + 0.1 * df.loc[i - 96, 'predicted_consumption']
+    try:
+        prediction = 0.9 * prediction + 0.1 * df.loc[i - 96, 'predicted_consumption']
+    except KeyError:
+        pass
 
     df.at[i, 'predicted_consumption'] = prediction
 
-# Save results
+
 output_path = "forecast_2025_recursive_from_2023_2024.xlsx"
 df.to_excel(output_path, index=False)
 print(f"📈 Recursive forecast saved to {output_path}")
+
